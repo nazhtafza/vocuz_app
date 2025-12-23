@@ -1,15 +1,14 @@
-
-import { Button } from "./components/ui/button"
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Navbar } from "./components/ui/navbar"
+import { Pricing } from './pages/Pricing'
 function App() {
 
   return (
     <>
-      <h1>hello world</h1>
-
-      <div className="flex min-h-svh flex-col items-center justify-center">
-       <Button>Click me</Button>
-      </div>
+      <Navbar/>
+      <Routes>
+        <Route path="/pricing" element={<Pricing/>}/>
+      </Routes>
     </>
   )
 }
