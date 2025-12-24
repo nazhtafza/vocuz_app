@@ -30,7 +30,7 @@ export default function HowItWorks(){
       ];
     return (
         <>
-           <section className="relative w-full py-20 overflow-hidden bg-white">
+           <section id="works" className="relative w-full py-20 overflow-hidden bg-white">
 
             <div className="text-center items-center">
                 <h1 className="font-bold text-4xl text-center items-center">How It Works</h1>
