@@ -1,6 +1,7 @@
 import HeroSection from "@/components/section/hero";
 import HowItWorks from "@/components/section/how_it_works";
 import Features from "@/components/section/features";
+import { Footer } from "@/components/ui/footer";
 
 export function LandingPage (){
     return(
@@ -8,6 +9,7 @@ export function LandingPage (){
             <HeroSection/>
             <HowItWorks/>
             <Features/>
+            <Footer/>
         </main>
     );
 }
