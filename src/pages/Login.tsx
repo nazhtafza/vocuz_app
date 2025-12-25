@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/supabaseClient"; // Pastikan path ini sesuai konfigurasi Anda
+import { supabase } from "@/supabaseClient"; 
 import type { Session } from "@supabase/supabase-js";
+import { Link } from "react-router-dom";
 
 export function Login() {
   const [session, setSession] = useState<Session | null>(null);
@@ -41,7 +42,7 @@ export function Login() {
     }
   };
 
-  // --- TAMPILAN JIKA SUDAH LOGIN (Dashboard Sederhana) ---
+// tampilan if login
   if (session) {
     return (
       <div className="min-h-screen w-full bg-black text-white flex flex-col items-center justify-center p-4">
@@ -62,11 +63,10 @@ export function Login() {
     );
   }
 
-  // --- TAMPILAN HALAMAN LOGIN (Sesuai Gambar Referensi) ---
+// tampilan halaman login
   return (
     <div className="min-h-screen w-full bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
       
-      {/* Background Grid Pattern (Opsional: Agar mirip nuansa brand Vocuz) */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.05]"
         style={{
@@ -75,12 +75,12 @@ export function Login() {
         }}
       />
 
-      {/* Kontainer Utama */}
+      {/* Main kontener*/}
       <div className="relative z-10 flex flex-col items-center gap-10 animate-in fade-in zoom-in duration-500">
         
         {/* 1. Logo */}
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-          vocuz.
+          <Link to={"/"}>vocuz.</Link>
         </h1>
 
         {/* 2. Tombol Login Google */}
