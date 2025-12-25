@@ -1,6 +1,6 @@
 import * as React from "react"; 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react"; 
 
 import {
@@ -14,24 +14,41 @@ import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation(); 
+  const navigate = useNavigate(); 
 
   const toggleMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  
   const navLinks = [
-    { label: "How It Works", targetId: "works" },
-    { label: "Features", targetId: "features" },
-    { label: "Pricing", targetId: "pricing" },
+    { label: "How It Works", href: "works", type: "scroll" },
+    { label: "Features", href: "features", type: "scroll" },
+    { label: "Pricing", href: "/pricing", type: "route" }, 
   ];
 
-  // Logic Smooth Scroll
-  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
-    e.preventDefault(); 
-    
-    const element = document.getElementById(targetId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+  const handleNavigation = (e: React.MouseEvent, link: { href: string; type: string }) => {
+    e.preventDefault();
+
+    if (link.type === "route") {
+      navigate(link.href);
+      setIsMobileMenuOpen(false);
+      window.scrollTo(0, 0); 
+    } else {
+      
+      if (location.pathname !== "/") {
+        navigate("/");
+        setTimeout(() => {
+          const element = document.getElementById(link.href);
+          if (element) element.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      } else {
+        const element = document.getElementById(link.href);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }
       setIsMobileMenuOpen(false);
     }
   };
@@ -39,29 +56,27 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+          
         <Link to="/" className="z-50 flex items-center gap-2 font-bold text-xl text-slate-800">
           <h2>vocuz.</h2>
         </Link>
 
-        {/* Desktop Menu */}
         <div className="hidden items-center space-x-6 md:flex">
           <NavigationMenu>
             <NavigationMenuList>
               {navLinks.map((link) => (
                 <NavigationMenuItem key={link.label}>
                   <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                    
                     <a 
-                      href={`#${link.targetId}`}
-                      onClick={(e) => handleScroll(e, link.targetId)}
-                      className="cursor-pointer">
+                      href={link.type === 'route' ? link.href : `#${link.href}`}
+                      onClick={(e) => handleNavigation(e, link)}
+                      className="cursor-pointer"
+                    >
                       {link.label}
                     </a>
-
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
-
             </NavigationMenuList>
           </NavigationMenu>
 
@@ -82,14 +97,12 @@ export function Navbar() {
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
           <div className="absolute top-16 left-0 w-full bg-white border-b shadow-lg md:hidden flex flex-col p-4 space-y-4 animate-in slide-in-from-top-5">
-            
-            {/* Loop Menu Mobile */}
             {navLinks.map((link) => (
                <a 
                  key={link.label}
-                 href={`#${link.targetId}`}
+                 href={link.type === 'route' ? link.href : `#${link.href}`}
                  className="text-sm font-medium hover:text-blue-600 p-2 rounded-md hover:bg-slate-50 block"
-                 onClick={(e) => handleScroll(e, link.targetId)}>
+                 onClick={(e) => handleNavigation(e, link)}>
                  {link.label}
                </a>
             ))}
