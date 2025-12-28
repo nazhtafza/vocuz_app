@@ -13,7 +13,7 @@ export function Login() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
-        navigate("/dashboard"); 
+        navigate("/dashboard_mission"); 
       }
     });
 
@@ -23,7 +23,7 @@ export function Login() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
-        navigate("/dashboard");
+        navigate("/dashboard_mission");
       }
     });
 
@@ -35,7 +35,7 @@ export function Login() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/dashboard`, 
+        redirectTo: `${window.location.origin}/dashboard_misison`, 
       },
     });
     if (error) {
