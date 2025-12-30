@@ -56,7 +56,7 @@ export default function DashboardTimer() {
       .from("missions")
       .select("*")
       .eq("is_completed", false) 
-      .order("created_at", { ascending: true }); // Mengerjakan task terlama dulu
+      .order("created_at", { ascending: true });
     
     setMissions(data || []);
     if (data && data.length > 0) {
@@ -115,11 +115,8 @@ export default function DashboardTimer() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // --- CORE LOGIC FLOW (SAVE DB) ---
   const handleTimerComplete = async () => {
     setIsActive(false);
-
-    // 1. Mainkan Alarm
     try {
         const audio = new Audio('/alarm.mp3'); 
         audio.play().catch(e => console.log("Audio play error", e));
