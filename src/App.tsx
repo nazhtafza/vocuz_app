@@ -7,6 +7,7 @@ import SettingsPage from './pages/Settings'
 import DashboardMission from './pages/Dash_Missions'
 import DashboardTimer from './pages/Dash_Timer'
 import { TimerProvider } from "@/context/TimerContext"
+import { DashboardSecondBrain } from './pages/Dash_SecBrain'
 
 function App() {
   const location = useLocation();
@@ -15,7 +16,7 @@ function App() {
     "/settings", 
     "/dashboard_mission", 
     "/dashboard_timer",
-    "/locked-in"
+    "/dashboard_secondbrain"
   ];
 
   const hideNavFooter = hiddenRoutes.includes(location.pathname);
@@ -33,6 +34,7 @@ function App() {
         <Route path='/settings' element={<SettingsPage/>}/>
         <Route path='/dashboard_mission' element={<DashboardMission/>}/>
         <Route path="/dashboard_timer" element={<DashboardTimer/>}/>
+        <Route path='/dashboard_secondbrain' element={<DashboardSecondBrain/>}/>
       </Routes>
 
     </TimerProvider>

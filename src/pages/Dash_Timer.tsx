@@ -193,6 +193,7 @@ export default function DashboardTimer() {
             </button>
             <span className="font-bold text-xl tracking-tight">vocuz.</span>
         </div>
+        
 
           <button 
             onClick={() => switchMode('focus')}
@@ -216,7 +217,7 @@ export default function DashboardTimer() {
           {formatTime(timeLeft)}
         </div>
 
-        {/* Action Buttons */}
+        {/* button play */}
         <div className="flex items-center gap-4 mt-12">
            <button 
             onClick={toggleTimer}
