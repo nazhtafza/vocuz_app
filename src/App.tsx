@@ -8,6 +8,8 @@ import DashboardMission from './pages/Dash_Missions'
 import DashboardTimer from './pages/Dash_Timer'
 import { TimerProvider } from "@/context/TimerContext"
 import { DashboardSecondBrain } from './pages/Dash_SecBrain'
+import DashboardProfile from './pages/Profile'
+import DashboardProgress from './pages/DashboardProgress'
 
 function App() {
   const location = useLocation();
@@ -16,7 +18,9 @@ function App() {
     "/settings", 
     "/dashboard_mission", 
     "/dashboard_timer",
-    "/dashboard_secondbrain"
+    "/dashboard_secondbrain",
+    "/profile",
+    "/progress"
   ];
 
   const hideNavFooter = hiddenRoutes.includes(location.pathname);
@@ -35,6 +39,9 @@ function App() {
         <Route path='/dashboard_mission' element={<DashboardMission/>}/>
         <Route path="/dashboard_timer" element={<DashboardTimer/>}/>
         <Route path='/dashboard_secondbrain' element={<DashboardSecondBrain/>}/>
+        <Route path='/progress' element={<DashboardProgress/>}/>
+
+        <Route path='/profile' element={<DashboardProfile/>}/>
       </Routes>
 
     </TimerProvider>

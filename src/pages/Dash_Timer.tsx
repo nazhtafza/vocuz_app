@@ -24,7 +24,6 @@ export default function DashboardTimer() {
   const { settings } = useTimerSettings();
   
   const [mode, setMode] = useState<TimerMode>('focus');
-  // Inisialisasi awal menggunakan data settings
   const [timeLeft, setTimeLeft] = useState(settings.focus * 60);
   const [isActive, setIsActive] = useState(false);
   
@@ -42,7 +41,7 @@ export default function DashboardTimer() {
     });
   }, []);
 
-  // Update timer jika user mengubah settings di halaman lain (saat timer pause)
+  // Update timer jika user mengubah settings (saat timer pause)
   useEffect(() => {
     if (!isActive) {
         if (mode === 'focus') setTimeLeft(settings.focus * 60);
@@ -97,8 +96,8 @@ export default function DashboardTimer() {
 
   const toggleTimer = () => {
     if (!selectedMissionId && mode === 'focus' && missions.length > 0) {
-      alert("Please select a mission first to stay focused!");
-      return;
+      // Opsional: Paksa user memilih misi, atau biarkan jalan tanpa misi
+      if(!confirm("You haven't selected a mission. Start anyway?")) return;
     }
     setIsActive(!isActive);
   };
@@ -116,53 +115,68 @@ export default function DashboardTimer() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Core Logic Flow
+  // --- CORE LOGIC FLOW (SAVE DB) ---
   const handleTimerComplete = async () => {
     setIsActive(false);
 
+    // 1. Mainkan Alarm
+    try {
+        const audio = new Audio('/alarm.mp3'); 
+        audio.play().catch(e => console.log("Audio play error", e));
+    } catch (e) {
+        console.error(e);
+    }
+
     if (!session) return;
 
-    // save durasi sesi
+    // 2. Tentukan durasi untuk disimpan
     let durationMinutes = settings.focus;
     if (mode === 'short') durationMinutes = settings.shortBreak;
     if (mode === 'long') durationMinutes = settings.longBreak;
 
+    // 3. Insert ke tabel focus_sessions
     const { error } = await supabase.from('focus_sessions').insert({
       user_id: session.user.id,
-      mission_id: mode === 'focus' ? selectedMissionId : null, 
+      mission_id: (mode === 'focus' && selectedMissionId) ? selectedMissionId : null, 
       mode: mode,
       duration_minutes: durationMinutes,
       is_completed: true
     });
 
     if (error) console.error("Error saving session:", error);
+    else console.log("Session saved to database.");
 
-    // pindah mode otomatis
+    // 4. Logika Pindah Mode & Update Misi
     if (mode === 'focus') {
         if (selectedMissionId) {
-            // update misi selesai
+            // Tandai misi selesai di database (Opsional, jika ingin sekali sesi langsung selesai)
             await supabase.from("missions").update({ is_completed: true }).eq("id", selectedMissionId);
             
-            // Hapus dari state lokal
+            // Hapus dari state lokal agar UI update
             const remainingMissions = missions.filter(m => m.id !== selectedMissionId);
             setMissions(remainingMissions);
 
             if (remainingMissions.length > 0) {
-                alert("Focus session done! Task completed. Take a short break.");
+                // Masih ada misi lain -> Short Break
+                alert("Focus session done! Mission completed. Time for a break.");
                 switchMode('short', true); 
             } else {
+                // Misi habis -> Long Break
                 alert("All tasks completed! Enjoy a long break.");
                 setSelectedMissionId(null);
                 switchMode('long', true); 
             }
         } else {
+            // Tidak ada misi terpilih
+            alert("Focus session done!");
             switchMode('short', true);
         }
 
     } else if (mode === 'short') {
         if (missions.length > 0) {
             alert("Break over! Back to work.");
-            setSelectedMissionId(missions[0].id);
+            // Otomatis pilih misi berikutnya jika ada
+            if(!selectedMissionId) setSelectedMissionId(missions[0].id);
             switchMode('focus', true); 
         } else {
             alert("Break over. No more tasks.");
@@ -183,8 +197,8 @@ export default function DashboardTimer() {
       <Sidebar mobileOpen={isSidebarOpen} setMobileOpen={setIsSidebarOpen} />
       
       <main className="flex-1 p-8 md:p-12 flex flex-col items-center justify-center min-h-screen relative w-full min-w-0">
-        <div className="flex items-center gap-2 bg-[#1A1D26] p-1.5 rounded-full mb-12">
-
+        
+        {/* --- HEADER MOBILE (DIPISAH DARI TOMBOL MODE AGAR RAPI) --- */}
         <div className="absolute top-6 left-6 z-20 flex items-center gap-4 lg:hidden">
             <button 
                 onClick={() => setIsSidebarOpen(true)}
@@ -193,8 +207,9 @@ export default function DashboardTimer() {
             </button>
             <span className="font-bold text-xl tracking-tight">vocuz.</span>
         </div>
-        
 
+        {/* --- TOMBOL MODE --- */}
+        <div className="flex items-center gap-2 bg-[#1A1D26] p-1.5 rounded-full mb-12 relative z-10">
           <button 
             onClick={() => switchMode('focus')}
             className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium transition-all ${mode === 'focus' ? 'bg-[#2A2E3B] text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}>
@@ -212,12 +227,12 @@ export default function DashboardTimer() {
           </button>
         </div>
 
-        {/* Display Timer */}
+        {/* --- TIMER DISPLAY --- */}
         <div className="text-[120px] md:text-[220px] font-bold leading-none tracking-tighter tabular-nums select-none transition-all duration-300">
           {formatTime(timeLeft)}
         </div>
 
-        {/* button play */}
+        {/* --- BUTTONS --- */}
         <div className="flex items-center gap-4 mt-12">
            <button 
             onClick={toggleTimer}
@@ -232,7 +247,7 @@ export default function DashboardTimer() {
           </button>
         </div>
 
-        {/* Misi Selector (Hanya di mode focus) */}
+        {/* --- MISI SELECTOR (Hanya di mode focus) --- */}
         {mode === 'focus' && (
           <div className="mt-16 w-full max-w-md text-center">
             <p className="text-gray-500 mb-4 text-sm font-medium uppercase tracking-widest">
