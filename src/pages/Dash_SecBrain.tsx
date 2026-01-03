@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Fullscreen, Plus, Menu, Save, Loader2, Trash2, ArrowLeft } from "lucide-react"; 
+import { Fullscreen, Plus, Menu, Save, Loader2, Trash2, ArrowLeft} from "lucide-react"; 
 import { supabase } from "@/supabaseClient"; 
 import { Sidebar } from "@/components/section/sidebar";
 import type { Session } from "@supabase/supabase-js";
@@ -11,19 +11,21 @@ type Note = {
   created_at: string;
 };
 
+
+
+
 export function DashboardSecondBrain() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- STATE MODAL ---
+  // modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({ title: "", description: "" });
-
   // 1. Cek Session
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

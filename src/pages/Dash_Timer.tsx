@@ -1,12 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/supabaseClient";
 import type { Session } from "@supabase/supabase-js";
 import { 
-  Play, Pause, RotateCcw, Coffee, Palmtree, Brain, CheckCircle2, Menu
+  Pause, RotateCcw, Coffee, Palmtree, Brain, CheckCircle2, Menu,
+  Play, Volume2, VolumeX, Music as MusicIcon
 } from "lucide-react";
-// Pastikan path ini sesuai
 import { Sidebar } from "@/components/section/sidebar";
 import { useTimerSettings } from "@/context/TimerContext";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 // --- Types ---
 type Mission = {
@@ -15,25 +24,42 @@ type Mission = {
   is_completed: boolean;
 };
 
+// --- Tracks Data ---
+const Tracks = [
+  {id: "lofi", name: "Lofi Focus", url: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"},
+  {id: "rainy", name: "Heavy Rain", url: "https://cdn.pixabay.com/download/audio/2022/07/04/audio_32448386e8.mp3"},
+  {id: "white", name: "White Noise", url: "https://cdn.pixabay.com/download/audio/2021/08/09/audio_88447e769f.mp3"},
+  {id: "forest", name: "Forest Nature", url: "https://cdn.pixabay.com/download/audio/2021/09/06/audio_37dbf60296.mp3"},
+];
+
 type TimerMode = 'focus' | 'short' | 'long';
 
 export default function DashboardTimer() {
   const [session, setSession] = useState<Session | null>(null);
   
-  // get setting dari context
+  // Context Settings
   const { settings } = useTimerSettings();
   
+  // State Timer
   const [mode, setMode] = useState<TimerMode>('focus');
   const [timeLeft, setTimeLeft] = useState(settings.focus * 60);
   const [isActive, setIsActive] = useState(false);
   
-  // Data State
+  // State Mission
   const [missions, setMissions] = useState<Mission[]>([]);
   const [selectedMissionId, setSelectedMissionId] = useState<string | null>(null);
   const [loadingMissions, setLoadingMissions] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Inisiasi data session & missions
+   // State Audio
+   const audioRef = useRef<HTMLAudioElement | null>(null);
+   const [currentTrack, setCurrentTrack] = useState(Tracks[0]);
+   const [isPlaying, setIsPlaying] = useState(false);
+   const [volume, setVolume] = useState([50]); 
+   const [isMuted, setIsMuted] = useState(false);
+   const [isPlayerExpanded, setIsPlayerExpanded] = useState(true);
+
+  //  Inisiasi Session
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -41,7 +67,48 @@ export default function DashboardTimer() {
     });
   }, []);
 
-  // Update timer jika user mengubah settings (saat timer pause)
+  //audio player
+  useEffect(() => {
+    audioRef.current = new Audio(currentTrack.url);
+    audioRef.current.loop = true;
+    audioRef.current.volume = volume[0] / 100;
+
+    // Auto-resume jika sebelumnya sedang playing
+    if (isPlaying) {
+        audioRef.current.play().catch(e => console.log("Audio prevent:", e));
+    }
+
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
+  }, [currentTrack]);
+
+  // Sync Play/Pause
+  useEffect(() => {
+    if (audioRef.current) {
+        if (isPlaying && !isMuted) {
+            audioRef.current.play().catch(() => setIsPlaying(false));
+        } else {
+            audioRef.current.pause();
+        }
+    }
+  }, [isPlaying, isMuted]);
+
+  // Sync Volume
+  useEffect(() => {
+    if (audioRef.current) {
+        audioRef.current.volume = isMuted ? 0 : volume[0] / 100;
+    }
+  }, [volume, isMuted]);
+
+  useEffect(() => {
+     if (isActive) setIsPlaying(true);
+     else setIsPlaying(false);
+  }, [isActive]);
+
+
+  // Update timer dari settings
   useEffect(() => {
     if (!isActive) {
         if (mode === 'focus') setTimeLeft(settings.focus * 60);
@@ -65,7 +132,7 @@ export default function DashboardTimer() {
     setLoadingMissions(false);
   };
 
-  // Timer Logic
+  // Timer Interval Logic
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
 
@@ -80,7 +147,7 @@ export default function DashboardTimer() {
     return () => clearInterval(interval);
   }, [isActive, timeLeft]);
 
-  // Helper pindah mode
+  // Helper Switch Mode
   const switchMode = (newMode: TimerMode, autoStart: boolean = false) => {
     setMode(newMode);
     setIsActive(false);
@@ -96,7 +163,6 @@ export default function DashboardTimer() {
 
   const toggleTimer = () => {
     if (!selectedMissionId && mode === 'focus' && missions.length > 0) {
-      // Opsional: Paksa user memilih misi, atau biarkan jalan tanpa misi
       if(!confirm("You haven't selected a mission. Start anyway?")) return;
     }
     setIsActive(!isActive);
@@ -118,6 +184,7 @@ export default function DashboardTimer() {
   const handleTimerComplete = async () => {
     setIsActive(false);
     try {
+        // Pastikan file alarm.mp3 ada di folder public
         const audio = new Audio('/alarm.mp3'); 
         audio.play().catch(e => console.log("Audio play error", e));
     } catch (e) {
@@ -126,12 +193,10 @@ export default function DashboardTimer() {
 
     if (!session) return;
 
-    // 2. Tentukan durasi untuk disimpan
     let durationMinutes = settings.focus;
     if (mode === 'short') durationMinutes = settings.shortBreak;
     if (mode === 'long') durationMinutes = settings.longBreak;
 
-    // 3. Insert ke tabel focus_sessions
     const { error } = await supabase.from('focus_sessions').insert({
       user_id: session.user.id,
       mission_id: (mode === 'focus' && selectedMissionId) ? selectedMissionId : null, 
@@ -141,47 +206,37 @@ export default function DashboardTimer() {
     });
 
     if (error) console.error("Error saving session:", error);
-    else console.log("Session saved to database.");
 
-    // 4. Logika Pindah Mode & Update Misi
     if (mode === 'focus') {
         if (selectedMissionId) {
-            // Tandai misi selesai di database (Opsional, jika ingin sekali sesi langsung selesai)
             await supabase.from("missions").update({ is_completed: true }).eq("id", selectedMissionId);
             
-            // Hapus dari state lokal agar UI update
             const remainingMissions = missions.filter(m => m.id !== selectedMissionId);
             setMissions(remainingMissions);
 
             if (remainingMissions.length > 0) {
-                // Masih ada misi lain -> Short Break
-                alert("Focus session done! Mission completed. Time for a break.");
+                alert("Focus session done! Taking a short break.");
                 switchMode('short', true); 
             } else {
-                // Misi habis -> Long Break
-                alert("All tasks completed! Enjoy a long break.");
+                alert("All tasks completed! Taking a long break.");
                 setSelectedMissionId(null);
                 switchMode('long', true); 
             }
         } else {
-            // Tidak ada misi terpilih
-            alert("Focus session done!");
             switchMode('short', true);
         }
 
     } else if (mode === 'short') {
         if (missions.length > 0) {
             alert("Break over! Back to work.");
-            // Otomatis pilih misi berikutnya jika ada
             if(!selectedMissionId) setSelectedMissionId(missions[0].id);
             switchMode('focus', true); 
         } else {
-            alert("Break over. No more tasks.");
             setIsActive(false);
         }
 
     } else if (mode === 'long') {
-        alert("Long break finished. You are refreshed!");
+        alert("Long break finished.");
         setIsActive(false);
         setMode('focus');
         setTimeLeft(settings.focus * 60);
@@ -195,7 +250,7 @@ export default function DashboardTimer() {
       
       <main className="flex-1 p-8 md:p-12 flex flex-col items-center justify-center min-h-screen relative w-full min-w-0">
         
-        {/* --- HEADER MOBILE (DIPISAH DARI TOMBOL MODE AGAR RAPI) --- */}
+        {/* HEADER MOBILE */}
         <div className="absolute top-6 left-6 z-20 flex items-center gap-4 lg:hidden">
             <button 
                 onClick={() => setIsSidebarOpen(true)}
@@ -205,7 +260,7 @@ export default function DashboardTimer() {
             <span className="font-bold text-xl tracking-tight">vocuz.</span>
         </div>
 
-        {/* --- TOMBOL MODE --- */}
+        {/* MODE SWITCHER */}
         <div className="flex items-center gap-2 bg-[#1A1D26] p-1.5 rounded-full mb-12 relative z-10">
           <button 
             onClick={() => switchMode('focus')}
@@ -224,12 +279,12 @@ export default function DashboardTimer() {
           </button>
         </div>
 
-        {/* --- TIMER DISPLAY --- */}
+        {/* TIMER DISPLAY */}
         <div className="text-[120px] md:text-[220px] font-bold leading-none tracking-tighter tabular-nums select-none transition-all duration-300">
           {formatTime(timeLeft)}
         </div>
 
-        {/* --- BUTTONS --- */}
+        {/* CONTROLS */}
         <div className="flex items-center gap-4 mt-12">
            <button 
             onClick={toggleTimer}
@@ -244,7 +299,7 @@ export default function DashboardTimer() {
           </button>
         </div>
 
-        {/* --- MISI SELECTOR (Hanya di mode focus) --- */}
+        {/* MISSION SELECTOR (FOCUS ONLY) */}
         {mode === 'focus' && (
           <div className="mt-16 w-full max-w-md text-center">
             <p className="text-gray-500 mb-4 text-sm font-medium uppercase tracking-widest">
@@ -279,6 +334,82 @@ export default function DashboardTimer() {
 
         <div className="absolute bottom-8 text-gray-500 text-sm animate-pulse">
              {isActive ? (mode === 'focus' ? "Stay Hard. Don't quit." : "Recharging energy...") : "Ready to lock in?"}
+        </div>
+
+        {/* --- FLOATING MUSIC PLAYER --- */}
+        <div className={cn(
+            "fixed bottom-6 right-6 z-50 bg-[#1A1D26] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 overflow-hidden",
+            isPlayerExpanded ? "w-80 p-4" : "w-14 h-14 p-0 rounded-full cursor-pointer hover:scale-110")}>
+            {isPlayerExpanded ? (
+                // EXPANDED VIEW
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                        <div className="flex items-center gap-2 text-sm font-bold text-gray-200">
+                            <MusicIcon size={16} className="text-blue-500" />
+                            <span>Focus Audio</span>
+                        </div>
+                        <button onClick={() => setIsPlayerExpanded(false)} className="text-gray-500 hover:text-white">
+                             <div className="w-8 h-1 bg-gray-600 rounded-full"></div>
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                         {/* Track Selector */}
+                         <Select 
+                            value={currentTrack.id} 
+                            onValueChange={(val) => {
+                                const t = Tracks.find(x => x.id === val);
+                                if(t) setCurrentTrack(t);
+                                setIsPlaying(true);
+                            }}>
+                            <SelectTrigger className="w-full h-8 bg-[#0F1116] border-white/10 text-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#1A1D26] border-white/10 text-white">
+                                {Tracks.map(t => (
+                                    <SelectItem key={t.id} value={t.id} className="focus:bg-white/10 focus:text-white">{t.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <div className="flex items-center gap-3">
+                            {/* Play/Pause Button */}
+                            <button 
+                                onClick={() => setIsPlaying(!isPlaying)}
+                                className={cn(
+                                    "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                                    isPlaying ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
+                                )}>
+                                {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-1"/>}
+                            </button>
+                            
+                            {/* Volume Control */}
+                            <div className="flex-1 flex items-center gap-2">
+                                <button onClick={() => setIsMuted(!isMuted)} className="text-gray-400 hover:text-white">
+                                    {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                                </button>
+                                <Slider 
+                                    value={volume} max={100} onValueChange={setVolume} className="flex-1" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                // MINIMIZED VIEW
+                <div 
+                    onClick={() => setIsPlayerExpanded(true)}
+                    className="w-full h-full flex items-center justify-center bg-blue-600 text-white">
+                    {isPlaying ? (
+                        <div className="flex gap-1 items-end h-4">
+                             <span className="w-1 bg-white animate-bounce h-2"></span>
+                             <span className="w-1 bg-white animate-[bounce_1.2s_infinite] h-4"></span>
+                             <span className="w-1 bg-white animate-[bounce_0.8s_infinite] h-3"></span>
+                        </div>
+                    ) : (
+                        <MusicIcon size={20} />
+                    )}
+                </div>
+            )}
         </div>
 
       </main>
