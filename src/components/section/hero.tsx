@@ -70,7 +70,8 @@ export default function HeroSection() {
               {/* tombol CTA Kartu */}
               <Button 
                 variant="secondary"
-                className="bg-slate-700/50 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-md px-6 py-6">
+                className="bg-slate-700/50 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-md px-6 py-6"
+                id="/login">
                 Hold Your Coffee and Start <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
 
