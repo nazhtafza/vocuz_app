@@ -23,7 +23,7 @@ export function DashboardSecondBrain() {
   const [editingId, setEditingId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({ title: "", description: "" });
-  // 1. Cek Session
+  // checking session
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -32,7 +32,7 @@ export function DashboardSecondBrain() {
     });
   }, []);
 
-  // 2. Fetch Data
+  // data fetching
   const fetchNotes = async () => {
     try {
       setIsLoading(true);
@@ -50,7 +50,7 @@ export function DashboardSecondBrain() {
     }
   };
 
-  // --- LOGIC MODAL ---
+  // modal logic
   const openCreateModal = () => {
     setEditingId(null);
     setFormData({ title: "", description: "" });
