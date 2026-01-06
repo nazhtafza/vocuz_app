@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { Sidebar } from "@/components/section/sidebar"; 
+import DashboardLayout from "@/pages/DashboardLayout"; // Import Layout Baru
 import { useTimerSettings } from "@/context/TimerContext";
-import { Save, Menu } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext"; 
+import { cn } from "@/lib/utils"; 
+import { Save, Sun, Leaf, Moon, Coffee, Check } from "lucide-react";
 
 export default function SettingsPage() {
   const { settings, updateSettings } = useTimerSettings();
+  const { theme, setTheme } = useTheme();
   
-  // State untuk Sidebar Mobile
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
-  // State form lokal
   const [form, setForm] = useState(settings);
   const [message, setMessage] = useState("");
 
@@ -19,76 +18,83 @@ export default function SettingsPage() {
     setTimeout(() => setMessage(""), 3000);
   };
 
-  return (
-    <div className="flex min-h-screen bg-[#0F1116] text-white font-sans relative">
-      
-      {/* Sidebar dengan props kontrol mobile */}
-      <Sidebar mobileOpen={isSidebarOpen} setMobileOpen={setIsSidebarOpen} />
-      
-      <main className="flex-1 p-4 md:p-8 lg:p-12 w-full min-w-0">
-        <div className="max-w-2xl mx-auto">
-          
-          {/* Header Mobile dengan Hamburger Menu */}
-          <div className="flex items-center gap-4 mb-6 lg:hidden">
-                <button 
-                    onClick={() => setIsSidebarOpen(true)}
-                    className="p-2 bg-[#1A1D26] rounded-md text-white hover:bg-white/10">
-                    <Menu size={24} />
-                </button>
-                <span className="font-bold text-xl">Settings</span>
-          </div>
+  const themes = [
+    { id: "light", name: "Light", icon: <Sun className="w-4 h-4" />, colors: { bg: "bg-white", border: "border-slate-200", accent: "bg-blue-600" } },
+    { id: "dark", name: "Dark", icon: <Moon className="w-4 h-4" />, colors: { bg: "bg-slate-950", border: "border-slate-800", accent: "bg-blue-500" } },
+    { id: "mint", name: "Mint Focus", icon: <Leaf className="w-4 h-4" />, colors: { bg: "bg-[#f0fdf4]", border: "border-emerald-200", accent: "bg-emerald-600" } },
+    { id: "brown", name: "Calm Brown", icon: <Coffee className="w-4 h-4" />, colors: { bg: "bg-[#fff8f0]", border: "border-orange-200", accent: "bg-[#785a46]" } }
+  ];
 
+  return (
+    // BUNGKUS DENGAN DASHBOARD LAYOUT
+    <DashboardLayout>
+        
+        <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-8 hidden lg:block">Settings</h2>
 
-          <div className="bg-[#1A1D26] border border-white/5 rounded-2xl p-6 md:p-8">
-            <h3 className="text-xl font-bold mb-6">Timer Configuration (Minutes)</h3>
-            
+          {/* Timer Config Section */}
+          <div className="bg-card border border-border rounded-2xl p-6 md:p-8 mb-8 shadow-sm transition-colors duration-300">
+            <h3 className="text-xl font-bold mb-6">Timer Configuration</h3>
             <div className="space-y-6">
-              
-              {/* Focus Input */}
+              {/* Inputs... (Sama seperti sebelumnya) */}
               <div>
-                <label className="block text-gray-400 mb-2 text-sm">Deep Focus Duration</label>
-                <input 
-                  type="number" 
-                  value={form.focus}
-                  onChange={(e) => setForm({...form, focus: Number(e.target.value)})}
-                  className="w-full bg-[#0F1116] border border-gray-700 rounded-lg p-3 text-white focus:border-white focus:outline-none"/>
+                <label className="block text-muted-foreground mb-2 text-sm">Deep Focus Duration</label>
+                <input type="number" value={form.focus} onChange={(e) => setForm({...form, focus: Number(e.target.value)})} className="w-full bg-background border border-input rounded-lg p-3 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"/>
+              </div>
+              <div>
+                 <label className="block text-muted-foreground mb-2 text-sm">Short Break</label>
+                 <input type="number" value={form.shortBreak} onChange={(e) => setForm({...form, shortBreak: Number(e.target.value)})} className="w-full bg-background border border-input rounded-lg p-3 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"/>
+              </div>
+              <div>
+                 <label className="block text-muted-foreground mb-2 text-sm">Long Break</label>
+                 <input type="number" value={form.longBreak} onChange={(e) => setForm({...form, longBreak: Number(e.target.value)})} className="w-full bg-background border border-input rounded-lg p-3 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"/>
               </div>
 
-              {/* Short Break Input */}
-              <div>
-                <label className="block text-gray-400 mb-2 text-sm">Short Break Duration</label>
-                <input 
-                  type="number" 
-                  value={form.shortBreak}
-                  onChange={(e) => setForm({...form, shortBreak: Number(e.target.value)})}
-                  className="w-full bg-[#0F1116] border border-gray-700 rounded-lg p-3 text-white focus:border-white focus:outline-none"/>
-              </div>
-
-              {/* Long Break Input */}
-              <div>
-                <label className="block text-gray-400 mb-2 text-sm">Long Break Duration</label>
-                <input 
-                  type="number" 
-                  value={form.longBreak}
-                  onChange={(e) => setForm({...form, longBreak: Number(e.target.value)})}
-                  className="w-full bg-[#0F1116] border border-gray-700 rounded-lg p-3 text-white focus:border-white focus:outline-none"/>
-              </div>
-
-              {/* Save Button */}
-              <div className="pt-4 flex flex-col md:flex-row items-start md:items-center gap-4">
-                <button 
-                    onClick={handleSave}
-                    className="w-full md:w-auto bg-white text-black px-6 py-3 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors">
-                    <Save size={18} /> Save Changes
+              <div className="pt-4 flex items-center gap-4">
+                <button onClick={handleSave} className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:opacity-90">
+                    <Save size={18} /> Save
                 </button>
-                {message && <span className="text-green-400 text-sm animate-pulse">{message}</span>}
+                {message && <span className="text-green-500 text-sm">{message}</span>}
               </div>
-
             </div>
           </div>
+
+          {/* Appearance Section */}
+          <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm transition-colors duration-300">
+            <div className="mb-6">
+                <h3 className="text-xl font-bold">Appearance</h3>
+                <p className="text-muted-foreground text-sm mt-1">Select a theme that fits your vibe.</p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {themes.map((t) => (
+                    <button
+                        key={t.id}
+                        onClick={() => setTheme(t.id as any)}
+                        className={cn(
+                            "group relative flex flex-col items-center gap-3 p-2 rounded-xl border-2 transition-all duration-200 hover:bg-accent",
+                            theme === t.id ? "border-primary bg-accent/50" : "border-transparent hover:border-border"
+                        )}
+                    >
+                        <div className={cn("w-full aspect-video rounded-lg shadow-sm p-2 flex flex-col gap-2 overflow-hidden transition-colors", t.colors.bg)}>
+                             <div className={cn("w-3/4 h-2 rounded-full opacity-50", t.id === 'dark' ? 'bg-slate-700' : 'bg-slate-300')} />
+                             <div className={cn("mt-auto w-6 h-6 rounded-full", t.colors.accent)} />
+                        </div>
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground group-hover:text-foreground">
+                            {t.icon} {t.name}
+                        </div>
+                        {theme === t.id && (
+                            <div className="absolute top-3 right-3 bg-primary text-primary-foreground rounded-full p-0.5 shadow-lg">
+                                <Check size={12} strokeWidth={3} />
+                            </div>
+                        )}
+                    </button>
+                ))}
+            </div>
+          </div>
+
         </div>
-      </main>
-    </div>
+
+    </DashboardLayout>
   );
 }

@@ -11,9 +11,6 @@ type Note = {
   created_at: string;
 };
 
-
-
-
 export function DashboardSecondBrain() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);

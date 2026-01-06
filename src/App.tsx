@@ -20,7 +20,8 @@ function App() {
     "/dashboard_timer",
     "/dashboard_secondbrain",
     "/profile",
-    "/progress"
+    "/progress",
+    "/setting"
   ];
 
   const hideNavFooter = hiddenRoutes.includes(location.pathname);
@@ -42,6 +43,7 @@ function App() {
         <Route path='/progress' element={<DashboardProgress/>}/>
 
         <Route path='/profile' element={<DashboardProfile/>}/>
+        <Route path='/setting' element={<SettingsPage/>}/>
       </Routes>
 
     </TimerProvider>

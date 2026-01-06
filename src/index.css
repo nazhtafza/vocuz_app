@@ -113,6 +113,52 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* mint theme */
+[data-theme = "mint"]{
+  --background: 150 60% 98%;
+    --foreground: 160 50% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 160 50% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 50% 10%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 150 40% 90%;
+    --secondary-foreground: 160 50% 15%;
+    --muted: 150 30% 94%;
+    --muted-foreground: 160 20% 40%;
+    --accent: 150 40% 92%;
+    --accent-foreground: 160 50% 15%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 160 30% 85%;
+    --input: 160 30% 85%;
+    --ring: 160 84% 39%;
+}
+
+/* Brown Calm */
+[data-theme="brown"] {
+  --background: 35 30% 96%;
+  --foreground: 25 15% 20%;
+  --card: 35 40% 98%;
+  --card-foreground: 25 15% 20%;
+  --popover: 35 40% 98%;
+  --popover-foreground: 25 15% 20%;
+  --primary: 25 35% 45%;
+  --primary-foreground: 35 30% 96%;
+  --secondary: 35 20% 90%;
+  --secondary-foreground: 25 15% 20%;
+  --muted: 35 20% 88%;
+  --muted-foreground: 25 10% 50%;
+  --accent: 35 25% 92%;
+  --accent-foreground: 25 15% 20%;
+  --destructive: 0 60% 50%;
+  --destructive-foreground: 35 30% 96%;
+  --border: 25 15% 85%;
+  --input: 25 15% 85%;
+  --ring: 25 35% 45%;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
